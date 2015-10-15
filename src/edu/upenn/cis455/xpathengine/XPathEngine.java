@@ -5,14 +5,14 @@ import java.io.InputStream;
 import org.w3c.dom.Document;
 import org.xml.sax.helpers.DefaultHandler;
 
-interface XPathEngine {
+public interface XPathEngine {
 
 
 	/**
 	 * Sets the XPath expression(s) that are to be evaluated.
 	 * @param expressions
 	 */
-	void setXPaths(String[] expressions);
+	public void setXPaths(String[] expressions);
 
 	/**
 	 * Returns true if the i.th XPath expression given to the last setXPaths() call
@@ -21,7 +21,7 @@ interface XPathEngine {
 	 * @param i
 	 * @return
 	 */
-	boolean isValid(int i);
+	public boolean isValid(int i);
 
 	/**
 	 * Returns true if the implementation is a SAX rather than DOM parser.
@@ -29,7 +29,7 @@ interface XPathEngine {
 	 * 
 	 * @return
 	 */
-	boolean isSAX();
+	public boolean isSAX();
 
 	/**
 	 * DOM Parser evaluation.
@@ -42,7 +42,7 @@ interface XPathEngine {
 	 * @param d Document root node
 	 * @return bit vector of matches
 	 */
-	boolean[] evaluate(Document d);
+	public boolean[] evaluate(Document d);
 
 	/**
 	 * SAX parser evaluation. (Optional extra credit.)
@@ -57,6 +57,6 @@ interface XPathEngine {
 	 * @param handler SAX handler implementation (from factory)
 	 * @return bit vector of matches
 	 */
-	boolean[] evaluateSAX(InputStream document, DefaultHandler handler);
+	public boolean[] evaluateSAX(InputStream document, DefaultHandler handler);
 
 }
