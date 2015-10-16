@@ -47,7 +47,9 @@ public class XPathServlet extends HttpServlet {
 		xPathEngine.setXPaths(xpaths);
 		
 		HttpClient httpClient = new HttpClient();
-		String docStr = httpClient.request(docURL);
+		Document doc = httpClient.request(docURL);
+		
+		
 		
 //		URL sourceUrl = new URL(docURL);
 //		String sourceFileName = sourceUrl.getFile();
@@ -58,18 +60,12 @@ public class XPathServlet extends HttpServlet {
 		
 		StringBuilder html = new StringBuilder();
 		html.append("<html><body>" );
-//		html.append("</body></html>");
-//		response.setContentType("text/html");
-//	    response.setContentLength(html.length());
-//
-//	    PrintWriter out = response.getWriter();
-//	    out.write(html.toString());
-//	    response.flushBuffer();
 		
-		try {
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			Document doc = db.parse(new ByteArrayInputStream(docStr.getBytes()));
+		if (doc == null){
+			html.append("Error while parsing HTML/XML to DOM");
+			
+		}
+		else {
 			boolean[] matches = xPathEngine.evaluate(doc);
 			for (int i = 0; i < xpaths.length; i++ ){
 				if (matches[i]){
@@ -79,19 +75,16 @@ public class XPathServlet extends HttpServlet {
 					html.append("Failure:" + xpaths[i] + "</br>");
 				}
 			}
-			
-			html.append("</body></html>");
-			response.setContentType("text/html");
-		    response.setContentLength(html.length());
-
-		    PrintWriter out = response.getWriter();
-		    out.write(html.toString());
-		    response.flushBuffer();
-		} catch (SAXException e){
-		   
-		} catch(ParserConfigurationException e){
-			
 		}
+		
+		
+		html.append("</body></html>");
+		response.setContentType("text/html");
+		response.setContentLength(html.length());
+	    PrintWriter out = response.getWriter();
+	    out.write(html.toString());
+	    response.flushBuffer();
+		
 		
 		
 		

@@ -20,7 +20,7 @@ public class HttpClient {
 		int count = 0;
 		
 	}
-    public String request(String  docURL){
+    public Document request(String  docURL){
         try {
             URL url = new URL(docURL);
             int port;
@@ -71,7 +71,10 @@ public class HttpClient {
 				}
             }
             else {
-            	return "[ERROR] File could not be fetched";
+            	out.close();
+                in.close();
+                clientSocket.close();
+            	return null;
             	
             }
             
@@ -82,27 +85,42 @@ public class HttpClient {
             if (httpResponseParser.otherHeaders.containsKey("content-type")){
             	String contentType = httpResponseParser.otherHeaders.get("content-type");
             	if (contentType.contains("XML") || contentType.contains("xml")){
-            		return response.toString();
+            		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        			DocumentBuilder db = dbf.newDocumentBuilder();
+        			Document doc = db.parse( new ByteArrayInputStream( response.toString().getBytes() ) );
+            		return doc;
             	}            		
             	else if(contentType.contains("html") || contentType.contains("HTML")){
-            		return response.toString();
-            		
+            		Tidy tidy = new Tidy();
+            		tidy.setInputEncoding("UTF-8");
+            		tidy.setOutputEncoding("UTF-8");
+            		tidy.setWraplen(Integer.MAX_VALUE);
+            		tidy.setMakeClean( true );
+            		tidy.setXmlOut( true);
+            		tidy.setPrintBodyOnly(true);
+            		Document doc = tidy.parseDOM( new ByteArrayInputStream( response.toString().getBytes("UTF-8") ) ,  new ByteArrayOutputStream());
+            		return doc;
             	}
             }
             else
-            	return "[ERROR] Content-type unknown";
+            	return null;
             
-            return "ERROR";
+            return null;
            
            
         } catch (UnknownHostException e) {
-        	return "[ERROR] Unknown Host";
+        	return null;
 
         } catch (MalformedURLException e) {
-        	return "[ERROR] Malformed URL";
+        	return null;
         } catch (IOException e){
-        	return "[ERROR] Error While Reading From Socket";
+        	return null;
 
-        } 
+        } catch (SAXException e){
+        	return null;
+ 		   
+ 		} catch(ParserConfigurationException e){
+ 			return null;
+ 		}
     }
 }

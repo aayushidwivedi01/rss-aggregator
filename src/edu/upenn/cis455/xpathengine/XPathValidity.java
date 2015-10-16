@@ -1,15 +1,6 @@
 package edu.upenn.cis455.xpathengine;
 
 import org.w3c.dom.Document;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Stack;
-
-import org.w3c.dom.Document;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
@@ -32,10 +23,10 @@ public class XPathValidity{
     public  XPathValidity(String path){
         this.path = path;
     }
+    
     public  XPathValidity(){
         
     }
-   
 
     public void xpath(){
         if (!(path.charAt(0) == '/')){
@@ -82,7 +73,7 @@ public class XPathValidity{
                 bracIndx.push(ind);
                 if (isGlobal){
                     pn = new PathNode();
-                    pn.setNodeName(token.substring(0, ind));
+                    pn.setNodeName(token.substring(0, ind).trim());
                 }
 
                 while (!bracIndx.isEmpty()){
@@ -148,7 +139,7 @@ public class XPathValidity{
                     if (!isGlobal)
                         state.pop();
                 }
-                else if (!bracIndx.isEmpty() || bracIndx.isEmpty() && token.charAt(i)!='/'){
+                else if (!bracIndx.isEmpty() ||  bracIndx.isEmpty() && !token.matches("\\s*/\\s*[.*?]*") ){
                     valid = false;
                 }
             }
@@ -158,7 +149,7 @@ public class XPathValidity{
                 String nodename = token.substring(0, indxOfAxis);
                 if (isGlobal){
                     pn = new PathNode();
-                    pn.setNodeName(nodename);
+                    pn.setNodeName(nodename.trim());
                     allNodes.add(pn);
                 }
                 axis = token.charAt(indxOfAxis);
@@ -180,7 +171,7 @@ public class XPathValidity{
                 String nodename = token.substring(0, indexOfAxis);
                 if (isGlobal){
                     pn = new PathNode();
-                    pn.setNodeName(nodename);
+                    pn.setNodeName(nodename.trim());
                     allNodes.add(pn);
 
                 }
@@ -198,7 +189,7 @@ public class XPathValidity{
                 String nodename = token;
                 if (isGlobal){
                     pn = new PathNode();
-                    pn.setNodeName(nodename);
+                    pn.setNodeName(nodename.trim());
                     allNodes.add(pn);
                 }
                 return;
@@ -210,14 +201,14 @@ public class XPathValidity{
 
 
     public void test(String subToken){
-        if(subToken.matches("contains\\s*\\(\\s*text\\s*\\(\\)\\s*,\\s*\\\".*?\\\"\\s*\\)\\s*")){
+        if(subToken.matches("\\s*contains\\s*\\(\\s*text\\s*\\(\\)\\s*,\\s*\\\".*?\\\"\\s*\\)\\s*")){
             System.out.println("Found contains in test");
             return ;
         }
-        else if(subToken.matches("text\\s*\\(\\s*\\)\\s*=\\s*\\\"\\s*.*?\\s*\\\"\\s*")){
+        else if(subToken.matches("\\s*text\\s*\\(\\s*\\)\\s*=\\s*\\\"\\s*.*?\\s*\\\"\\s*")){
             System.out.println("Found text in test");
             return;
-        } else if (subToken.matches("@\\s*[a-zA-Z0-9]*\\s*=\\s*\\\"\\s*[a-zA-Z0-9]*\\s*\\\"\\s*") ){
+        } else if (subToken.matches("\\s*@\\s*[a-zA-Z0-9]*\\s*=\\s*\\\"\\s*[a-zA-Z0-9]*\\s*\\\"\\s*") ){
             if (subToken.matches("^@[a-zA-Z0-9]=?(.*?)$")) {
                 System.out.println("Found attname in test");
                 return ;
@@ -228,10 +219,14 @@ public class XPathValidity{
         else {
 
             //send it to step()
-            if (token.matches("[a-zA-Z0-9\\-]*")){
+            //System.out.println("Subtoken:" + subToken + " Match: " + subToken.matches("[a-zA-Z0-9\\-]*") + "   token: " + token);
+            if (subToken.matches("(\\s*[\\s*a-zA-Z0-9\\-\\s*]*\\[.*)|(\\s*[\\s*a-zA-Z0-9\\-\\s*]*\\s*)")){
                 step(subToken);
             }
-            valid = false;
+            else{
+                valid = false;
+            }
+
 
 
 
