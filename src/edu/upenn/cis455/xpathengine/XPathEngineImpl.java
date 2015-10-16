@@ -26,6 +26,7 @@ public class XPathEngineImpl implements XPathEngine {
   public boolean isValid(int i) {
     /* Check which of the XPath expressions are valid */
 	xpathValidity = new XPathValidity(xpaths.get(i));
+	xpathValidity.xpath();
     return xpathValidity.valid;
   }
 	

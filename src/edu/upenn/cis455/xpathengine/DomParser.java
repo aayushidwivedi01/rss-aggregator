@@ -56,8 +56,9 @@ public class DomParser {
                             }
                            else{
                                 //filter is an xpath
-                                XPathValidity xpathValid = new XPathValidity();
+                               
                                 filter = currrNode + "/" + filter;
+                                XPathValidity xpathValid = new XPathValidity();
                                 xpathValid.step(filter);
 
                                 DomParser filterParser = new DomParser();
@@ -169,8 +170,9 @@ public class DomParser {
                                     else{
                                         //filter is an xpath
                                         System.out.println("FILTER:" + filters.get(f) + "Curr " + allChildren.item(j));
-                                        XPathValidity xpathValid = new XPathValidity();
+                                        
                                         filter = allChildren.item(j).getNodeName() + "/" + filter;
+                                        XPathValidity xpathValid = new XPathValidity();
                                         xpathValid.step(filter);
                                         DomParser filterParser = new DomParser();
                                         if (filterParser.parse(xpathValid.allNodes, allChildren.item(j))){

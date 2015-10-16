@@ -8,11 +8,19 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import org.w3c.dom.Document;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Stack;
+
 /**
  * Created by Aayushi on 10/13/2015.
  */
 public class XPathValidity{
-	String path;
+    String path;
     char axis;
     String token;
     int i = 0;
@@ -24,10 +32,10 @@ public class XPathValidity{
     public  XPathValidity(String path){
         this.path = path;
     }
-    
     public  XPathValidity(){
         
     }
+   
 
     public void xpath(){
         if (!(path.charAt(0) == '/')){
