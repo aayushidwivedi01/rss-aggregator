@@ -1,5 +1,13 @@
 package edu.upenn.cis455.servlet;
 
+/**
+ * This class implements a simple HttpClient
+ * It fetches the data from the requested url,
+ * parses it into Document
+ * @param content: Address / url of the xml/html file in StringBuilder format
+ * return : Document
+ */
+
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.Socket;
@@ -39,14 +47,7 @@ public class HttpClient {
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             StringBuilder response = new StringBuilder();
             int count = 0;
-//            while ((line = in.readLine()) != null){
-//            	if(line.length() == 0)
-//            		count ++;
-//            	if (count > 0){
-//            		response.append(line);
-//            	}
-//               
-//            }
+
             
             HttpResponseParser httpResponseParser = null;
             ArrayList<String> responseContent = new ArrayList<>();

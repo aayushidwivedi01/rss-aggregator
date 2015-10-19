@@ -25,19 +25,17 @@ import edu.upenn.cis455.xpathengine.XPathEngineFactory;
 
 @SuppressWarnings("serial")
 public class XPathServlet extends HttpServlet {
-	//static final Logger logger = Logger.getLogger(HttpServer.class);
-
 	
-	/* TODO: Implement user interface for XPath engine here */
-	
-	/* You may want to override one or both of the following methods */
-
+	/**
+	 * implements doPost method for the servlet
+	 * Uses HttpClient to fetch the document from the given
+	 * URL
+	 */
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		/* TODO: Implement user interface for XPath engine here */
-		Map<String, String> paramMap= request.getParameterMap();
+	
 		
-		System.out.println(paramMap.toString());
 		String xpath = request.getParameter("xpath");
 		String docURL= request.getParameter("url");
 		
@@ -49,14 +47,6 @@ public class XPathServlet extends HttpServlet {
 		HttpClient httpClient = new HttpClient();
 		Document doc = httpClient.request(docURL);
 		
-		
-		
-//		URL sourceUrl = new URL(docURL);
-//		String sourceFileName = sourceUrl.getFile();
-//		File sourceFile = new File("/usr/share/jetty/webapps/"+sourceFileName);
-//		sourceFile.mkdirs();
-//		Path destinationPath = new File("/usr/share/jetty/webapps/"+sourceFileName).toPath();
-//		Files.copy(sourceUrl.openStream(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
 		
 		StringBuilder html = new StringBuilder();
 		html.append("<html><body>" );
@@ -80,9 +70,9 @@ public class XPathServlet extends HttpServlet {
 		
 		html.append("</body></html>");
 		response.setContentType("text/html");
-		response.setContentLength(html.length());
+		
 	    PrintWriter out = response.getWriter();
-	    out.write(html.toString());
+	    out.println(html.toString());
 	    response.flushBuffer();
 		
 		
@@ -93,10 +83,10 @@ public class XPathServlet extends HttpServlet {
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		/* TODO: Implement user interface for XPath engine here */
-		String html = "<form action =\"/servlet/xpath\" method= \"post\">"
-				+ "Name: Aayushi Dwived</br>Login: aayushi</br>XPath</br>"
-				+ "Enter \";\" separated xpaths:</br>"
-				+ "<input type=\"text\" name=\"xpath\"></br>HTML/XML URL</br>"
+		String html = "<form action =\"/servlet/xpath\" method= \"post\"> <h2>XPath Matcher</h2>"
+				+ "Name: Aayushi Dwivedi</br>Login: aayushi</br></br><b>Enter XPath</b></br>"
+				+ "Use \";\" to separate multiple XPaths:</br>"
+				+ "<input type=\"text\" name=\"xpath\"></br></br><b>Enter HTML/XML URL</b></br>"
 				+ "<input type=\"text\" name=\"url\"></br>"
 				+ "<input type=\"submit\" value=\"Submit\"></form>";
 

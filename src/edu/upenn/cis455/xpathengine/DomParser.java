@@ -1,5 +1,8 @@
 package edu.upenn.cis455.xpathengine;
 
+/**
+ * Implements DOM parser
+ *  */
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
 import javax.xml.parsers.DocumentBuilder;
@@ -17,6 +20,11 @@ import java.util.Map;
 public class DomParser {
     NodeList allChildren = null;
 
+    /*
+     * this method takes as input an XPath query and a Node
+     * @query:an ArrayList of type PathNode containig XPath query
+     * @currnode is the current parent node
+     */
     public boolean parse(ArrayList<PathNode>query, Node currrNode){
 
         if (query == null || query.isEmpty())

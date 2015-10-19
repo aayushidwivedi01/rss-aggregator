@@ -1,5 +1,8 @@
 package edu.upenn.cis455.servlet;
-
+/**
+ * This class is used by HttpClient to
+ * parse the response received from the host
+ */
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -19,6 +22,7 @@ public class HttpResponseParser {
 		this.otherRequests = otherRequests;
 	}
 	
+	//sets the status and code of the response
 	public  void parseResponseHeaders(){
 		 
 		 String[] splitRequest = mainRequest.split(" ");
@@ -29,6 +33,7 @@ public class HttpResponseParser {
 		
 	 }	
 	
+	//parses rest of the headers in the response
 	public void parseOtherHeaders(){
 		for( String req : otherRequests){
 			 String[] pair = req.split(":", 2);

@@ -1,5 +1,11 @@
 package edu.upenn.cis455.xpathengine;
 
+/**
+ * This class implements recurssive descent parsing
+ * to check whether a given XPath conforms with 
+ * servlet's grammar
+ * @path is the XPath which needs to be validated
+ */
 import org.w3c.dom.Document;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -28,6 +34,7 @@ public class XPathValidity{
         
     }
 
+    //checks xpath -> axis step
     public void xpath(){
         if (!(path.charAt(0) == '/')){
             valid = false;
@@ -42,6 +49,7 @@ public class XPathValidity{
 
     }
 
+    //checks axis -> /
     public void axis(){
         if(axis == '/')
             return;
@@ -52,12 +60,16 @@ public class XPathValidity{
 
     }
 
+    //checks step -> nodename ([ test ])* (axis step)?
     public void step(String token) {
         if (token.length() <= 0) {
-            System.out.println("Step length zero" + axis + " " + token + " i:" + i);
-            i++;
-
+            valid = false;            
             return;
+        }
+        
+        if (token.startsWith("/")){
+        	valid = false;
+        	return;
         }
 
         if (token.contains("[")){
@@ -199,7 +211,10 @@ public class XPathValidity{
         }
     }
 
-
+    /**
+     * checks whether filters are present and what type of filter
+     * @param subToken 
+     */
     public void test(String subToken){
         if(subToken.matches("\\s*contains\\s*\\(\\s*text\\s*\\(\\)\\s*,\\s*\\\".*?\\\"\\s*\\)\\s*")){
             System.out.println("Found contains in test");
@@ -209,7 +224,7 @@ public class XPathValidity{
             System.out.println("Found text in test");
             return;
         } else if (subToken.matches("\\s*@\\s*[a-zA-Z0-9]*\\s*=\\s*\\\"\\s*[a-zA-Z0-9]*\\s*\\\"\\s*") ){
-            if (subToken.matches("^@[a-zA-Z0-9]=?(.*?)$")) {
+            if (subToken.matches("^\\s*@[a-zA-Z0-9]=?(.*?)$")) {
                 System.out.println("Found attname in test");
                 return ;
             }
@@ -220,7 +235,7 @@ public class XPathValidity{
 
             //send it to step()
             //System.out.println("Subtoken:" + subToken + " Match: " + subToken.matches("[a-zA-Z0-9\\-]*") + "   token: " + token);
-            if (subToken.matches("(\\s*[\\s*a-zA-Z0-9\\-\\s*]*\\[.*)|(\\s*[\\s*a-zA-Z0-9\\-\\s*]*\\s*)")){
+            if (subToken.matches("^(.+)/([^/]+)$")){
                 step(subToken);
             }
             else{
