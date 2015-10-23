@@ -19,6 +19,7 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 
+import edu.upenn.cis455.httpClient.HttpClient;
 import edu.upenn.cis455.xpathengine.XPathEngine;
 import edu.upenn.cis455.xpathengine.XPathEngineFactory;
 
