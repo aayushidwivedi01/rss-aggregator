@@ -2,24 +2,32 @@ package edu.upenn.cis455.crawler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
+import edu.upenn.cis455.crawler.info.DocumentInfo;
 import edu.upenn.cis455.crawler.info.RobotsTxtInfo;
 import edu.upenn.cis455.crawler.info.RobotsTxtParse;
 import edu.upenn.cis455.extractor.HtmlLinkExtractor;
 import edu.upenn.cis455.httpClient.HttpClient;
 import edu.upenn.cis455.httpClient.HttpResponse;
+import edu.upenn.cis455.storage.CrawledEntityClass;
 
 public class CrawlerThread extends Thread {
 	private LinkedList<String>urlQueue;
-	private ConcurrentHashMap<String, RobotsTxtInfo> hostnameRobotsMap = new ConcurrentHashMap<>();
+	private HashMap<String, RobotsTxtInfo> hostnameRobotsMap = new HashMap<>();
 	private String protocol;
+	private DataHandler dataHandler = new DataHandler();
+	private CrawledEntityClass crawledData;
 	
-	public CrawlerThread(LinkedList<String> queue){
+	public CrawlerThread(LinkedList<String> queue, HashMap<String, RobotsTxtInfo>map){
 		this.urlQueue = queue;
+		this.hostnameRobotsMap = map;
 	}
 	
 	public String relativeURL(String url, String hostname){
@@ -58,7 +66,7 @@ public class CrawlerThread extends Thread {
 		if (currTime - lastCrawled < crawlDelay)
 			return false;
 		
-		boolean crawl = true;
+		
 		//robotsTxtInfo.print();
 		if (robotsTxtInfo.containsUserAgent(userAgent)){
 			//check crwal delay
@@ -112,6 +120,76 @@ public class CrawlerThread extends Thread {
 		return true;
 	}
 	
+	public String getDate(HttpResponse resp){
+		if (resp.headers.containsKey("Date")){
+			return resp.headers.get("Date").get(0);
+			
+		}
+		else{
+			SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+			sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+			Date date = new Date();
+			return sdf.format(date);
+		}
+		
+	}
+	
+	
+	public void crawl(String url, HttpClient httpClient, HttpResponse response){
+		
+		//extract links from html
+		//check content type, content len, return type;
+		if (response != null){
+			//if html crawl, if xml save to DB
+			if (httpClient.CONTENT_TYPE.equals("html")){
+				//crawl
+				//Store the html in DB
+				String crawlTime = getDate(response);
+				DocumentInfo doc = new DocumentInfo(url, response.body, "html", crawlTime);
+				dataHandler.storeCrawlerData(url, doc);
+				
+				System.out.println("Now Crawling " + url);
+				HtmlLinkExtractor htmlLink = new HtmlLinkExtractor(response.body,url, urlQueue);
+				htmlLink.extract();
+				System.out.println("Done crawling this link : " + url);
+			}
+			else if (httpClient.CONTENT_TYPE.equals("xml")){
+				//save to DB
+				System.out.print("Add XML to DB");
+				String  crawlTime = getDate(response);
+				DocumentInfo doc = new DocumentInfo(url, response.body, "xml", crawlTime);
+				dataHandler.storeCrawlerData(url, doc);
+			}
+			
+		}
+	}
+	
+	public String getLastCrawledTime(){
+		DocumentInfo docInfo = crawledData.getDoc();
+		String lastCrawled = docInfo.getLastCrawled();
+		return lastCrawled;
+//		httpClient.isRobot = false;
+//		HttpResponse response = httpClient.getResponse(url, "HEAD", "cis455crawler");
+	}
+	
+	public String getCrawledDoc(){
+		DocumentInfo docInfo = crawledData.getDoc();
+		return docInfo.getBody();
+	}
+	public boolean isInDB(String url){
+
+			//check in DB
+		crawledData = null;
+		if ((crawledData = dataHandler.getCrawledData(url)) != null){
+			//url exists
+			
+			return true;	
+		}
+		else {
+			return false;
+		}
+		
+	}
 	public void run(){
 		
 		while(true){
@@ -129,7 +207,7 @@ public class CrawlerThread extends Thread {
 				}
 				else {
 						String url = urlQueue.removeFirst();
-						
+						String userAgent = "cis455crawler";
 						HttpClient httpClient = new HttpClient();
 						String hostname = httpClient.getHostName(url);
 						
@@ -137,28 +215,24 @@ public class CrawlerThread extends Thread {
 						if (hostnameRobotsMap != null && hostnameRobotsMap.containsKey(hostname)){
 							// have robots.txt for this hostname
 							//check user agent,etc fields
-							if( canCrawl(url, hostname)){
-								//crawl
-								System.out.println("Can crawl");
-								String userAgent = "cis455crawler";
-								HttpResponse response = httpClient.getResponse(url, "GET",userAgent );
-								
-								//check content type, content len, return type;
-								if (response != null){
-									//if html crawl, if xml save to DB
-									if (httpClient.CONTENT_TYPE.equals("html")){
-										//TO-DO
-										//crawl
-										System.out.println("Crawling");
-									}
-									else if (httpClient.CONTENT_TYPE.equals("xml")){
-										//TO-DO
-										//save to DB
-									}
+							//TO-DO:what to do when robots present in map
+							if (isInDB(url)){
+								String lastCrawled = getLastCrawledTime();
+								System.out.println(url);
+								String responseCode = httpClient.isModifiedSince(url, lastCrawled, userAgent);
+								if (responseCode.equals("200")){
+									//has been modified
+									HttpResponse response = httpClient.getResponse(url, "GET", userAgent);
+									crawl(url,httpClient, response);
 								}
-							}
-							else{
-								continue;
+								else if (responseCode.equals("304")){
+									System.out.println("URL document not modified. Crawling old doc: " + url);
+									HtmlLinkExtractor htmlLink = new HtmlLinkExtractor(getCrawledDoc(),url, urlQueue);
+									htmlLink.extract();
+								}
+								else if (responseCode.equals("301")){
+									System.out.println("Dont do anything");
+								}
 							}
 							
 						}
@@ -173,7 +247,7 @@ public class CrawlerThread extends Thread {
 							HttpResponse response ;
 							if (robotsTxtUrl != null){
 								httpClient.setIsRobot(true);
-								response = httpClient.getResponse(robotsTxtUrl, "GET", "cis455crawler");
+								response = httpClient.getResponse(robotsTxtUrl, "GET", userAgent );
 								httpClient.setIsRobot(false);
 								
 							} else {
@@ -188,35 +262,13 @@ public class CrawlerThread extends Thread {
 								hostnameRobotsMap.put(hostname, info);
 							}
 							
-							response = httpClient.getResponse(url, "GET", "cis455crawler");
+							response = httpClient.getResponse(url, "GET", userAgent );
 							if (canCrawl(url, hostname)){
-								
-								//System.out.println("Can crawl");
-								
-								//extract links from html
-								//check content type, content len, return type;
-								if (response != null){
-									//if html crawl, if xml save to DB
-									if (httpClient.CONTENT_TYPE.equals("html")){
-										//TO-DO
-										//crawl
-										System.out.println("Now Crawling " + url);
-										HtmlLinkExtractor htmlLink = new HtmlLinkExtractor(response.body,url, urlQueue);
-										htmlLink.extract();
-										System.out.print("Done crawling this link");
-									}
-									else if (httpClient.CONTENT_TYPE.equals("xml")){
-										//TO-DO
-										//save to DB
-										System.out.print("Add XML to DB");
-									}
-									
-								}
+								crawl(url, httpClient, response);
 							}
-							
-							else{
+							else
 								continue;
-							}
+							
 							
 							
 							

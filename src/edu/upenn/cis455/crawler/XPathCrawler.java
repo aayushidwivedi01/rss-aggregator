@@ -1,24 +1,30 @@
 package edu.upenn.cis455.crawler;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+
+import edu.upenn.cis455.crawler.info.RobotsTxtInfo;
+import edu.upenn.cis455.storage.DBWrapper;
 
 
 public class XPathCrawler {
 	
 	private final static  int MAX_POOL_SIZE  = 1;
+	private static String store;
 	
 	static CrawlerThread[] crawlerThread = new CrawlerThread[MAX_POOL_SIZE];
 	
 	
-	private static void generateCrawlerPool(LinkedList<String> urlQueue){
+	private static void generateCrawlerPool(LinkedList<String> urlQueue, HashMap<String, RobotsTxtInfo> map){
 		for(int i = 0; i < MAX_POOL_SIZE; i++){
-			crawlerThread[i] = new CrawlerThread(urlQueue);
+			crawlerThread[i] = new CrawlerThread(urlQueue, map);
 			crawlerThread[i].setName("Crawler "+i);
     		
 			crawlerThread[i].start();
     	}
 		
 	}
+	
 	
 	public static void usage(){
 		//TO-DO
@@ -32,6 +38,7 @@ public class XPathCrawler {
 	public static void main(String args[]){
 		
 		LinkedList<String> urlQueue = new LinkedList<>();
+		HashMap<String, RobotsTxtInfo> hostRobotsTxtMap = new HashMap<>();
 		
 		if (args.length < 3){
 			usage();
@@ -48,7 +55,14 @@ public class XPathCrawler {
 			}
 		}
 		
-		generateCrawlerPool(urlQueue);
+		//create DB store
+		store = args[1];
+		DBWrapper dbWrapper = new DBWrapper();
+		dbWrapper.setup(args[1]);
+		
+		//create worker threads
+		generateCrawlerPool(urlQueue, hostRobotsTxtMap);
+		
 		synchronized(urlQueue){
 			System.out.println("Seed url added");
 			urlQueue.add(args[0]);
@@ -63,6 +77,7 @@ public class XPathCrawler {
 			}
 		}
 		
+		dbWrapper.shutdown();
 		
 		
 	}

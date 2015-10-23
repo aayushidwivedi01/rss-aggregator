@@ -15,6 +15,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -23,8 +24,8 @@ import org.xml.sax.SAXException;
 
 public class HtmlLinkExtractor {
 	
-	private static String doc;
-	private static String url;
+	private  String doc;
+	private String url;
 	private LinkedList<String> queue;
 	public HtmlLinkExtractor(String doc, String url, LinkedList<String> queue){
 		
@@ -43,16 +44,14 @@ public class HtmlLinkExtractor {
 	public void extract(){
 		Document document = parse();
 		Elements links = document.select("a[href]");
-		
-		for (int i = 0; i < links.size(); i++){
-			System.out.println(links.get(i).attr("abs:href"));
+		System.out.println("Built Urls for  "+ url );
+		for (Element link : links) {
+			System.out.println(link.attr("abs:href"));
 			synchronized(queue){
-				queue.add(links.get(i).attr("abs:href"));
-				//queue.notify();
+				queue.add(link.attr("abs:href"));
 			}
-			//
-			
 		}
+            
 		return;
 
 	} 

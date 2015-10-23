@@ -40,6 +40,9 @@ public class DBWrapper {
 		
 	}
 	
+	public static EntityStore getStore(){
+		return store;
+	}
 	
 	public static void shutdown() throws DatabaseException{
 		if (myEnv != null) 
@@ -51,21 +54,21 @@ public class DBWrapper {
 	
 	
 	
-	public static void  main(String args[]){
-		setup("./testDb");
-		
-		UserEntityClass usr = new UserEntityClass();
-		
-		UserDA userDA = new UserDA(store);
-		
-		usr.setUsename("Aayushi");
-		usr.setPassword("anda");
-		
-		userDA.pIdx.put(usr);
-		
-		System.out.println(userDA.pIdx.get("Aayushi"));
-		
-	}
+//	public static void  main(String args[]){
+//		setup("./testDb");
+//		
+//		UserEntityClass usr = new UserEntityClass();
+//		
+//		UserDA userDA = new UserDA(store);
+//		
+//		usr.setUsename("Aayushi");
+//		usr.setPassword("anda");
+//		
+//		userDA.pIdx.put(usr);
+//		
+//		System.out.println(userDA.pIdx.get("Aayushi"));
+//		
+//	}
 	
 	
 }

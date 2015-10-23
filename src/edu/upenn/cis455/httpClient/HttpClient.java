@@ -14,6 +14,7 @@ import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +30,11 @@ import org.xml.sax.SAXException;
 
 public class HttpClient {
 	
+	
 	public boolean isRobot;
 	
+	public boolean ifModifiedFlag = false;
+	public String lastCrawled;
 	public static String CONTENT_TYPE;
 	
 	public boolean isHttps(String url){
@@ -41,6 +45,9 @@ public class HttpClient {
 			return false;
 				
 		
+	}
+	public HttpClient(){
+		HttpsURLConnection.setFollowRedirects(false);
 	}
 	public String getHostName(String docURL){
 		try{
@@ -71,6 +78,23 @@ public class HttpClient {
 	
 	public void setIsRobot(boolean value){
 		this.isRobot = value;
+	}
+	
+	public String isModifiedSince(String docURL, String lastCrawled, String userAgent){
+		this.ifModifiedFlag = true;
+		this.lastCrawled = lastCrawled;
+		
+		if (!isHttps(docURL)){
+			HttpResponse headResponse = formHttpRequest(docURL, "HEAD", userAgent);
+			this.ifModifiedFlag = false;
+			return headResponse.code;
+				
+		}
+		else{
+			HttpResponse headResponse = formHttpsRequest(docURL, "HEAD", userAgent);	
+			this.ifModifiedFlag = false;
+			return headResponse.code;
+		}
 	}
 	
 	//TO-DO: check content length before getting the file
@@ -159,7 +183,14 @@ public class HttpClient {
 	            PrintWriter out = new PrintWriter(clientSocket.getOutputStream());
 	            String request, line;
 	            
-	            request = requestType + " "+url + " HTTP/1.0\r\nUser-Agent: " + userAgent+ "\r\n\r\n";
+	            
+	            if (ifModifiedFlag){
+	            	request = requestType + " "+url + " HTTP/1.0\r\nUser-Agent: "
+	            			+ userAgent+ "\r\nIf-Modified-Since:" + lastCrawled+"\r\n\r\n";
+	            }
+	            else {
+	            	request = requestType + " "+url + " HTTP/1.0\r\nUser-Agent: " + userAgent+ "\r\n\r\n";
+	            }
 					            
 	            out.print(request);
 	            out.flush();
@@ -282,6 +313,10 @@ public class HttpClient {
 				HttpsURLConnection con = (HttpsURLConnection)url.openConnection();
 				con.setRequestMethod(requestType);
 				con.setRequestProperty("User-Agent", userAgent);
+				if (ifModifiedFlag){
+					con.setRequestProperty("If-Modified-Since", lastCrawled);
+				}
+
 				in = new BufferedReader(
 						new InputStreamReader(con.getInputStream()));
 		    
@@ -297,7 +332,7 @@ public class HttpClient {
 	    			response.append(line + "\n");
 	    		}
 	    		//System.out.println(response.toString());
-	    		
+	    		System.out.println(String.valueOf(con.getResponseCode()) + url);
 	    		HttpResponse httpResponse = new HttpResponse();
 	    		httpResponse.code = String.valueOf(con.getResponseCode());
 	    		httpResponse.status = con.getResponseMessage();
@@ -326,7 +361,16 @@ public class HttpClient {
 	            		in.close();
 	        			return httpResponse;
 	            	}
+	            	
+	            	else if (ifModifiedFlag){
+	            		in.close();
+	            		return httpResponse;
+	            	}
 	            }
+	    		else if (ifModifiedFlag){
+	    			in.close();
+	    			return httpResponse;
+	    		}
 	            else{
 	            	in.close();
 	            	return null;
