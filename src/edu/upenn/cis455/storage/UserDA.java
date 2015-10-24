@@ -10,7 +10,7 @@ import com.sleepycat.persist.model.SecondaryKey;
 
 public class UserDA {
 
-	PrimaryIndex<String, UserEntityClass> pIdx;
+	public PrimaryIndex<String, UserEntityClass> pIdx;
 
 	public UserDA(EntityStore store) {
 		pIdx = store.getPrimaryIndex(String.class, UserEntityClass.class);

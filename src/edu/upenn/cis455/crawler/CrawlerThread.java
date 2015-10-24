@@ -13,9 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import edu.upenn.cis455.crawler.info.DocumentInfo;
 import edu.upenn.cis455.crawler.info.RobotsTxtInfo;
 import edu.upenn.cis455.crawler.info.RobotsTxtParse;
-import edu.upenn.cis455.servlet.HttpClient;
-import edu.upenn.cis455.servlet.HttpResponse;
-import edu.upenn.cis455.storage.CrawledEntityClass;
 
 public class CrawlerThread extends Thread {
 	private LinkedList<String> urlQueue;

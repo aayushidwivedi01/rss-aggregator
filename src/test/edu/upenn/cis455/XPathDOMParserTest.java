@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 import java.net.URL;
 
 import junit.framework.TestCase;
-import edu.upenn.cis455.servlet.HttpClient;
+import edu.upenn.cis455.crawler.HttpClient;
 import edu.upenn.cis455.xpathengine.XPathEngine;
 import edu.upenn.cis455.xpathengine.XPathEngineFactory;
 

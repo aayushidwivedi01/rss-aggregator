@@ -12,8 +12,64 @@ public class ChannelEntityClass {
 	@PrimaryKey
 	private String channelId;
 	private String username;
-	private ArrayList<XPath> xPathSet;
-	private Date lastCrawledTime;
-	private byte[] document;
+	private String channelName;
+	private ArrayList<String> xpaths = new ArrayList<>();
+	
+
+	@Override
+	public String toString() {
+		return "ChannelEntityClass [channelId=" + channelId + ", username="
+				+ username + ", channelName=" + channelName + ", xpaths="
+				+ xpaths + ", documentLinks=" + documentLinks + "]";
+	}
+
+	private ArrayList<String> documentLinks = new ArrayList<>();
+	
+	public void setUsername(String username){
+		this.username = username;
+		
+	}
+	
+	public void setChannelName(String channelName){
+		this.channelName = channelName;
+		
+	}
+	
+	public void addXPaths(String xpath){
+		xpaths.add(xpath);
+		
+	}
+	
+	public void addDocument(String document){
+		documentLinks.add(document);		
+	}
+	
+	public void setChannelId(String channelId) {
+		this.channelId = channelId;
+	}
+
+	public String getChannelId() {
+		return channelId;
+	}
+
+	
+
+	public ArrayList<String> getXpaths() {
+		return xpaths;
+	}
+
+	public ArrayList<String> getDocumentLinks() {
+		return documentLinks;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public String getChannelName() {
+		return channelName;
+	}
+	
+	
 
 }

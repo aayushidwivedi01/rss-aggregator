@@ -19,6 +19,7 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 
+import edu.upenn.cis455.crawler.HttpClient;
 import edu.upenn.cis455.xpathengine.XPathEngine;
 import edu.upenn.cis455.xpathengine.XPathEngineFactory;
 
@@ -32,42 +33,48 @@ public class XPathServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
-		/* TODO: Implement user interface for XPath engine here */
+		
 
-		String xpath = request.getParameter("xpath");
-		String docURL = request.getParameter("url");
-
-		String[] xpaths = xpath.split(";");
-
-		XPathEngine xPathEngine = XPathEngineFactory.getXPathEngine();
-		xPathEngine.setXPaths(xpaths);
-
-		HttpClient httpClient = new HttpClient();
-		Document doc = httpClient.request(docURL);
-
-		StringBuilder html = new StringBuilder();
-		html.append("<html><body>");
-
-		if (doc == null) {
-			html.append("Error while parsing HTML/XML to DOM");
-
-		} else {
-			boolean[] matches = xPathEngine.evaluate(doc);
-			for (int i = 0; i < xpaths.length; i++) {
-				if (matches[i]) {
-					html.append("Success:" + xpaths[i] + "</br>");
-				} else {
-					html.append("Failure:" + xpaths[i] + "</br>");
-				}
-			}
+//		String xpath = request.getParameter("xpath");
+//		String docURL = request.getParameter("url");
+//
+//		String[] xpaths = xpath.split(";");
+//
+//		XPathEngine xPathEngine = XPathEngineFactory.getXPathEngine();
+//		xPathEngine.setXPaths(xpaths);
+//
+//		HttpClient httpClient = new HttpClient();
+//		Document doc = httpClient.request(docURL);
+//
+//		StringBuilder html = new StringBuilder();
+//		html.append("<html><body>");
+//
+//		if (doc == null) {
+//			html.append("Error while parsing HTML/XML to DOM");
+//
+//		} else {
+//			boolean[] matches = xPathEngine.evaluate(doc);
+//			for (int i = 0; i < xpaths.length; i++) {
+//				if (matches[i]) {
+//					html.append("Success:" + xpaths[i] + "</br>");
+//				} else {
+//					html.append("Failure:" + xpaths[i] + "</br>");
+//				}
+//			}
+//		}
+//
+//		html.append("</body></html>");
+//		response.setContentType("text/html");
+//
+//		PrintWriter out = response.getWriter();
+//		out.println(html.toString());
+//		response.flushBuffer();
+		
+		String pathInfo = request.getPathInfo();
+		
+		if (pathInfo.equals("verifyNewAccount")){
+			
 		}
-
-		html.append("</body></html>");
-		response.setContentType("text/html");
-
-		PrintWriter out = response.getWriter();
-		out.println(html.toString());
-		response.flushBuffer();
 
 	}
 
@@ -85,7 +92,25 @@ public class XPathServlet extends HttpServlet {
 		// + "<input type=\"text\" name=\"url\"></br>"
 		// + "<input type=\"submit\" value=\"Submit\"></form>";
 
-		String html = HTMLPages.homepage();
+		String html = null;
+		String pathInfo = request.getPathInfo();
+		
+		if (pathInfo == null || pathInfo.equals("/")){
+			html = HTMLPages.homepage();
+		}
+		
+		else if (pathInfo.equals("/login")){
+			html = HTMLPages.loginPage();
+		}
+		
+		else if (pathInfo.equals("/createaccount")){
+			html = HTMLPages.createAccountPage();
+		}
+		else if (pathInfo.equals("/viewchannels")){
+			String dbDir = getServletContext().getInitParameter("BDBstore");
+			System.out.println("DB: " + dbDir);
+			html = HTMLPages.viewChannelsPage(dbDir);
+		}
 
 		response.setContentType("text/html");
 		response.setContentLength(html.length());

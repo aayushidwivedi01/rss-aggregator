@@ -17,6 +17,8 @@ public class DBWrapper {
 	private static EntityStore store;
 
 	public static void setup(String dirName) throws DatabaseException {
+		if (dirName == null)
+			return;
 		File dbDir = new File(dirName);
 
 		if (!(dbDir.isDirectory())) {
@@ -43,11 +45,13 @@ public class DBWrapper {
 	}
 
 	public static void shutdown() throws DatabaseException {
+		if (store != null)
+			store.close();
+		
 		if (myEnv != null)
 			myEnv.close();
 
-		if (store != null)
-			store.close();
+		
 	}
 
 	// public static void main(String args[]){
