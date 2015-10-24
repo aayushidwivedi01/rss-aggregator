@@ -5,29 +5,28 @@ import com.sleepycat.persist.model.PrimaryKey;
 import static com.sleepycat.persist.model.Relationship.*;
 import com.sleepycat.persist.model.SecondaryKey;
 
-
 @Entity
 public class UserEntityClass {
-	
-    //username is primary key
+
+	// username is primary key
 	@PrimaryKey
 	private String username;
-	
+
 	private String password;
-	
-	public void setUsename(String name){
+
+	public void setUsename(String name) {
 		username = name;
 	}
-	
-	public void setPassword(String passwd){
+
+	public void setPassword(String passwd) {
 		password = passwd;
 	}
-	
-	public String getUsername(){
+
+	public String getUsername() {
 		return username;
 	}
-	
-	public String getPassword(){
+
+	public String getPassword() {
 		return password;
 	}
 
@@ -37,5 +36,4 @@ public class UserEntityClass {
 				+ password + "]";
 	}
 
-	
 }

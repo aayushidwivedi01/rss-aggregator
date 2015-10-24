@@ -19,95 +19,81 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 
-import edu.upenn.cis455.httpClient.HttpClient;
 import edu.upenn.cis455.xpathengine.XPathEngine;
 import edu.upenn.cis455.xpathengine.XPathEngineFactory;
 
-
 @SuppressWarnings("serial")
 public class XPathServlet extends HttpServlet {
-	
+
 	/**
-	 * implements doPost method for the servlet
-	 * Uses HttpClient to fetch the document from the given
-	 * URL
+	 * implements doPost method for the servlet Uses HttpClient to fetch the
+	 * document from the given URL
 	 */
 	@Override
-	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws IOException {
 		/* TODO: Implement user interface for XPath engine here */
-	
-		
+
 		String xpath = request.getParameter("xpath");
-		String docURL= request.getParameter("url");
-		
+		String docURL = request.getParameter("url");
+
 		String[] xpaths = xpath.split(";");
-		
+
 		XPathEngine xPathEngine = XPathEngineFactory.getXPathEngine();
 		xPathEngine.setXPaths(xpaths);
-		
+
 		HttpClient httpClient = new HttpClient();
 		Document doc = httpClient.request(docURL);
-		
-		
+
 		StringBuilder html = new StringBuilder();
-		html.append("<html><body>" );
-		
-		if (doc == null){
+		html.append("<html><body>");
+
+		if (doc == null) {
 			html.append("Error while parsing HTML/XML to DOM");
-			
-		}
-		else {
+
+		} else {
 			boolean[] matches = xPathEngine.evaluate(doc);
-			for (int i = 0; i < xpaths.length; i++ ){
-				if (matches[i]){
-					html.append("Success:" + xpaths[i]+ "</br>");
-				}
-				else{
+			for (int i = 0; i < xpaths.length; i++) {
+				if (matches[i]) {
+					html.append("Success:" + xpaths[i] + "</br>");
+				} else {
 					html.append("Failure:" + xpaths[i] + "</br>");
 				}
 			}
 		}
-		
-		
+
 		html.append("</body></html>");
 		response.setContentType("text/html");
-		
-	    PrintWriter out = response.getWriter();
-	    out.println(html.toString());
-	    response.flushBuffer();
-		
-		
-		
-		
+
+		PrintWriter out = response.getWriter();
+		out.println(html.toString());
+		response.flushBuffer();
+
 	}
 
 	@Override
-	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws IOException {
 		/* TODO: Implement user interface for XPath engine here */
-		String html = "<form action =\"/servlet/xpath\" method= \"post\"> <h2>XPath Matcher</h2>"
-				+ "Name: Aayushi Dwivedi</br>Login: aayushi</br></br><b>Enter XPath</b></br>"
-				+ "Use \";\" to separate multiple XPaths:</br>"
-				+ "<input type=\"text\" name=\"xpath\"></br></br><b>Enter HTML/XML URL</b></br>"
-				+ "<input type=\"text\" name=\"url\"></br>"
-				+ "<input type=\"submit\" value=\"Submit\"></form>";
+		// String html =
+		// "<form action =\"/servlet/xpath\" method= \"post\"> <h2>XPath Matcher</h2>"
+		// +
+		// "Name: Aayushi Dwivedi</br>Login: aayushi</br></br><b>Enter XPath</b></br>"
+		// + "Use \";\" to separate multiple XPaths:</br>"
+		// +
+		// "<input type=\"text\" name=\"xpath\"></br></br><b>Enter HTML/XML URL</b></br>"
+		// + "<input type=\"text\" name=\"url\"></br>"
+		// + "<input type=\"submit\" value=\"Submit\"></form>";
 
-        response.setContentType("text/html");
-        response.setContentLength(html.length());
+		String html = HTMLPages.homepage();
 
-        PrintWriter out = response.getWriter();
-        out.write(html);
-        response.flushBuffer();
+		response.setContentType("text/html");
+		response.setContentLength(html.length());
 
-		
+		PrintWriter out = response.getWriter();
+		out.write(html);
+		response.flushBuffer();
+
 	}
 
 }
-
-
-
-
-
-
-
-
-

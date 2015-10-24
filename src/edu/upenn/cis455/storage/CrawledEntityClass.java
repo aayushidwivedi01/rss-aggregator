@@ -11,7 +11,6 @@ import edu.upenn.cis455.crawler.info.DocumentInfo;
 @Entity
 public class CrawledEntityClass {
 
-
 	@Override
 	public String toString() {
 		return "CrawledEntityClass [url=" + url + ", doc=" + doc + "]";
@@ -20,21 +19,20 @@ public class CrawledEntityClass {
 	@PrimaryKey
 	private String url;
 	private DocumentInfo doc;
-	
-	public void setUrl(String url){
+
+	public void setUrl(String url) {
 		this.url = url;
 	}
-	
-	public void setDoc(DocumentInfo doc){
+
+	public void setDoc(DocumentInfo doc) {
 		this.doc = doc;
 	}
-	
-	
-	public String getUrl(){
+
+	public String getUrl() {
 		return this.url;
 	}
-	
-	public DocumentInfo getDoc(){
+
+	public DocumentInfo getDoc() {
 		return this.doc;
 	}
 }

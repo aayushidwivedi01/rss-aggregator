@@ -10,65 +10,60 @@ import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.StoreConfig;
 
 public class DBWrapper {
-	
+
 	private static String envDirectory = null;
-	
+
 	private static Environment myEnv = null;
 	private static EntityStore store;
-		
-	
-	public static void setup(String dirName) throws DatabaseException{
+
+	public static void setup(String dirName) throws DatabaseException {
 		File dbDir = new File(dirName);
-		
-		if (!(dbDir.isDirectory())){
+
+		if (!(dbDir.isDirectory())) {
 			if (dbDir.mkdir()) {
 				System.out.println("Directory creation successful");
 			} else {
 				System.out.println("Failed to create new directory");
 			}
 		}
-		
+
 		EnvironmentConfig envConfig = new EnvironmentConfig();
 		StoreConfig storeConfig = new StoreConfig();
-		
+
 		envConfig.setAllowCreate(true);
 		storeConfig.setAllowCreate(true);
-			
+
 		myEnv = new Environment(dbDir, envConfig);
-		store = new EntityStore(myEnv, "Entity Store", storeConfig);	
-						
-		
+		store = new EntityStore(myEnv, "Entity Store", storeConfig);
+
 	}
-	
-	public static EntityStore getStore(){
+
+	public static EntityStore getStore() {
 		return store;
 	}
-	
-	public static void shutdown() throws DatabaseException{
-		if (myEnv != null) 
+
+	public static void shutdown() throws DatabaseException {
+		if (myEnv != null)
 			myEnv.close();
-			
+
 		if (store != null)
-			store.close();	
+			store.close();
 	}
-	
-	
-	
-//	public static void  main(String args[]){
-//		setup("./testDb");
-//		
-//		UserEntityClass usr = new UserEntityClass();
-//		
-//		UserDA userDA = new UserDA(store);
-//		
-//		usr.setUsename("Aayushi");
-//		usr.setPassword("anda");
-//		
-//		userDA.pIdx.put(usr);
-//		
-//		System.out.println(userDA.pIdx.get("Aayushi"));
-//		
-//	}
-	
-	
+
+	// public static void main(String args[]){
+	// setup("./testDb");
+	//
+	// UserEntityClass usr = new UserEntityClass();
+	//
+	// UserDA userDA = new UserDA(store);
+	//
+	// usr.setUsename("Aayushi");
+	// usr.setPassword("anda");
+	//
+	// userDA.pIdx.put(usr);
+	//
+	// System.out.println(userDA.pIdx.get("Aayushi"));
+	//
+	// }
+
 }
