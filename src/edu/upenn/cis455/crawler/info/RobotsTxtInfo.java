@@ -22,8 +22,8 @@ public class RobotsTxtInfo {
 		userAgents = new ArrayList<String>();
 	}
 
-	public void setLastCrawled(Date date) {
-		this.lastCrawled = date.getTime() / 1000;
+	public void setLastCrawled(long date) {
+		this.lastCrawled = date / 1000;
 	}
 
 	public long getLastCrawled() {

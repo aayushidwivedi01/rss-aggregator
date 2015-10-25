@@ -97,20 +97,21 @@ public class HttpClient {
 		}
 	}
 
-	// TO-DO: check content length before getting the file
+	
 
 	public HttpResponse getResponse(String docURL, String requestType,
 			String userAgent) {
-		System.out.println("Handling request for URL : " + docURL);
-		if (!isHttps(docURL)) {// TO-DO: incomplete: add format conditions
+		//System.out.println("Handling request for URL : " + docURL);
+		if (!isHttps(docURL)) {
 			if (requestType.equalsIgnoreCase("get")) {
 				HttpResponse headResponse = formHttpRequest(docURL, "HEAD",
 						userAgent);
-				System.out.println("HEAD" + headResponse.code);
+				//System.out.println("HEAD" + headResponse.code);
 				if (headResponse.code.equals("200")
 						&& headResponse.status.equals("OK")) {
 					return formHttpRequest(docURL, requestType, userAgent);
-				} else {
+				} 
+				else {
 					return null;
 				}
 			} else {
@@ -128,7 +129,8 @@ public class HttpClient {
 						String contentType = headResponse.headers.get(
 								"Content-Type").get(0);
 						contentType = contentType.split(";")[0].trim();
-						if (contentType.equalsIgnoreCase("text/html")) {
+						System.out.println("CONTENT TYPE: " + contentType);
+						if (contentType.matches("\\s*text/html.*")) {
 							CONTENT_TYPE = "html";
 							return formHttpsRequest(docURL, requestType,
 									userAgent);
@@ -157,8 +159,7 @@ public class HttpClient {
 						return null;
 					}
 
-				}// TO-DO: Add 301: Redirect: enqueue url, 304:
-					// if-modified-since
+				}
 				else {
 
 					return null;
@@ -174,7 +175,7 @@ public class HttpClient {
 
 	public HttpResponse formHttpRequest(String docURL, String requestType,
 			String userAgent) {
-		System.out.println("Handling HTTP request for URL : " + docURL);
+		//System.out.println("Handling HTTP request for URL : " + docURL);
 
 		URL url = null;
 		BufferedReader in = null;
@@ -315,7 +316,7 @@ public class HttpClient {
 
 	public HttpResponse formHttpsRequest(String docURL, String requestType,
 			String userAgent) {
-		System.out.println("Handling HTTP request for URL : " + docURL);
+		//System.out.println("Handling HTTP request for URL : " + docURL);
 
 		URL url = null;
 		BufferedReader in = null;
@@ -327,7 +328,7 @@ public class HttpClient {
 				con.setRequestMethod(requestType);
 				con.setRequestProperty("User-Agent", userAgent);
 				if (ifModifiedFlag) {
-					System.out.println("If modified  : " + docURL);
+					//System.out.println("If modified  : " + docURL);
 
 					con.setRequestProperty("If-Modified-Since", lastCrawled);
 				}
@@ -346,8 +347,8 @@ public class HttpClient {
 					response.append(line + "\n");
 				}
 				// System.out.println(response.toString());
-				System.out.println("Status code : "
-						+ String.valueOf(con.getResponseCode()) + url);
+				//System.out.println("Status code : "
+				//		+ String.valueOf(con.getResponseCode()) + url);
 				HttpResponse httpResponse = new HttpResponse();
 				httpResponse.code = String.valueOf(con.getResponseCode());
 				httpResponse.status = con.getResponseMessage();

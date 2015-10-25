@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,14 +18,19 @@ import edu.upenn.cis455.crawler.info.RobotsTxtParse;
 public class CrawlerThread extends Thread {
 	private LinkedList<String> urlQueue;
 	private HashMap<String, RobotsTxtInfo> hostnameRobotsMap = new HashMap<>();
+	private HashSet<String>visitedURLS = new HashSet<>();
 	private String protocol;
 	private DataHandler dataHandler = new DataHandler();
 	private CrawledEntityClass crawledData;
-
+	private int numFile = 0;
 	public CrawlerThread(LinkedList<String> queue,
 			HashMap<String, RobotsTxtInfo> map) {
 		this.urlQueue = queue;
 		this.hostnameRobotsMap = map;
+	}
+	
+	public void increment(){
+		numFile++;
 	}
 
 	public String relativeURL(String url, String hostname) {
@@ -50,7 +56,7 @@ public class CrawlerThread extends Thread {
 
 		long currTime = new Date().getTime() / 1000;
 		long lastCrawled = robotsTxtInfo.getLastCrawled();
-		long crawlDelay = -1;
+		long crawlDelay = 0;
 		if (robotsTxtInfo.containsUserAgent(userAgent)) {
 			crawlDelay = robotsTxtInfo.getCrawlDelay(userAgent);
 		} else if (robotsTxtInfo.containsUserAgent("*")) {
@@ -61,17 +67,17 @@ public class CrawlerThread extends Thread {
 
 		// robotsTxtInfo.print();
 		if (robotsTxtInfo.containsUserAgent(userAgent)) {
-			// check crwal delay
+			// check crl delay
 			ArrayList<String> allowedLinks = robotsTxtInfo
 					.getAllowedLinks(userAgent);
-			if (allowedLinks != null && allowedLinks.contains(userAgent)) {
+			if (allowedLinks != null && allowedLinks.contains(url)) {
 				return true;
 			} else {
 				ArrayList<String> disAllowedLinks = robotsTxtInfo
-						.getAllowedLinks(userAgent);
+						.getDisallowedLinks(userAgent);
 				if (disAllowedLinks != null
-						&& disAllowedLinks.contains(userAgent)) {
-					return false;
+						&& disAllowedLinks.contains(url)) {
+						return false;
 				} else if (disAllowedLinks != null) {
 					// check if any of the paths are a parent in url
 					for (String link : disAllowedLinks) {
@@ -131,6 +137,11 @@ public class CrawlerThread extends Thread {
 
 		// extract links from html
 		// check content type, content len, return type;
+		if (visitedURLS.contains(url)){
+			System.out.println("Has been crawled");
+			return;
+		}
+			
 		if (response != null) {
 			// if html crawl, if xml save to DB
 			if (!response.headers.containsKey("Content-Type"))
@@ -138,7 +149,7 @@ public class CrawlerThread extends Thread {
 			try {
 				int fileSize = Integer.valueOf(response.headers
 						.get("Content-Length").get(0).trim());
-				System.out.println("File size: " + fileSize);
+				
 				if (fileSize > XPathCrawler.getMaxFileSize()) {
 					System.out.println("File too big. Skip crawling");
 					return;
@@ -150,23 +161,34 @@ public class CrawlerThread extends Thread {
 			if (httpClient.CONTENT_TYPE.equals("html")) {
 				// crawl
 				// Store the html in DB
+				
 				String crawlTime = getDate(response);
 				DocumentInfo doc = new DocumentInfo(url, response.body, "html",
 						crawlTime);
 				dataHandler.storeCrawlerData(url, doc);
 
-				System.out.println("Now Crawling " + url);
+				
+				System.out.println("***********Now Crawling " + url + "************");
 				HtmlLinkExtractor htmlLink = new HtmlLinkExtractor(
 						response.body, url, urlQueue);
 				htmlLink.extract();
+				visitedURLS.add(url);
+				increment();
 				System.out.println("Done crawling this link : " + url);
 			} else if (httpClient.CONTENT_TYPE.equals("xml")) {
+				
+				//add to visited
+				visitedURLS.add(url);
+				increment();
+				
 				// save to DB
-				System.out.print("Add XML to DB");
+				
 				String crawlTime = getDate(response);
 				DocumentInfo doc = new DocumentInfo(url, response.body, "xml",
 						crawlTime);
 				dataHandler.storeCrawlerData(url, doc);
+				System.out.println("MATHCING XPATHS");
+				XMLHandler.matchXPaths(response.body, url);
 			}
 
 		}
@@ -210,6 +232,8 @@ public class CrawlerThread extends Thread {
 							urlQueue.wait();
 						} catch (InterruptedException e) {
 							if (CrawlStatus.signalStop()) {
+								System.out.println ("Num of files crawled " + Thread.currentThread().getName()
+										+ " :" + numFile);
 								System.out.println(Thread.currentThread()
 										.getName() + " is stopped");
 							} else {
@@ -222,8 +246,6 @@ public class CrawlerThread extends Thread {
 						}
 
 					} else {
-						System.out.println("QUEUE CONTENT: "
-								+ urlQueue.toString());
 						String url = urlQueue.removeFirst();
 						String userAgent = "cis455crawler";
 						HttpClient httpClient = new HttpClient();
@@ -235,6 +257,7 @@ public class CrawlerThread extends Thread {
 							// have robots.txt for this hostname
 							// check user agent,etc fields
 							// TO-DO:what to do when robots present in map
+							
 							if (isInDB(url)) {
 								String lastCrawled = getLastCrawledTime();
 								System.out.println("This url is in DB: " + url
@@ -253,13 +276,25 @@ public class CrawlerThread extends Thread {
 													+ url);
 									// System.out.println("Crawled Doc: "+
 									// getCrawledDoc());
-
-									HtmlLinkExtractor htmlLink = new HtmlLinkExtractor(
-											getCrawledDoc(), url, urlQueue);
-									htmlLink.extract();
+									if (url.endsWith(".xml")){
+										System.out.println("Matching XPaths " + url);
+										XMLHandler.matchXPaths(getCrawledDoc(), url);
+										increment();
+									}
+									else {
+										HtmlLinkExtractor htmlLink = new HtmlLinkExtractor(
+												getCrawledDoc(), url, urlQueue);
+										htmlLink.extract();
+										increment();
+									}
+									
 
 								} else if (responseCode.equals("301")) {
-									System.out.println("Dont do anything");
+									
+								}
+								
+								synchronized(hostnameRobotsMap){
+									hostnameRobotsMap.get(hostname).setLastCrawled(new Date().getTime());
 								}
 							} else {
 								// crawl normally
@@ -300,10 +335,15 @@ public class CrawlerThread extends Thread {
 								hostnameRobotsMap.put(hostname, info);
 							}
 
-							response = httpClient.getResponse(url, "GET",
-									userAgent);
+							
 							if (canCrawl(url, hostname)) {
+								response = httpClient.getResponse(url, "GET",
+										userAgent);
 								crawl(url, httpClient, response);
+								synchronized(hostnameRobotsMap){
+									hostnameRobotsMap.get(hostname).setLastCrawled(new Date().getTime());
+								}
+								
 							} else
 								continue;
 
@@ -315,6 +355,8 @@ public class CrawlerThread extends Thread {
 
 		} catch (Exception e) {
 			if (CrawlStatus.signalStop()) {
+				System.out.println ("Num of files crawled " + Thread.currentThread().getName()
+						+ " :" + numFile);
 				System.out.println(Thread.currentThread().getName()
 						+ " is stopped");
 			} else {

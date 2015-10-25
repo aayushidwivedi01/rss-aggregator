@@ -1,3 +1,4 @@
+
 package edu.upenn.cis455.crawler;
 
 import java.util.HashMap;
@@ -13,6 +14,7 @@ public class XPathCrawler {
 	private static long maxFileSize;
 	private static int maxNumFiles;
 	private int numFilesCrawled = -1;
+	private static int numCrawled = 0;
 
 	static CrawlerThread[] crawlerThread = new CrawlerThread[MAX_POOL_SIZE];
 
@@ -25,6 +27,15 @@ public class XPathCrawler {
 			crawlerThread[i].start();
 		}
 
+	}
+	
+	public static String getStore(){
+		return store;
+	}
+	
+	public static synchronized void incrementCrawl(){
+		System.out.println("INCREMENTING &&&& *************************");
+		numCrawled++;
 	}
 
 	public static long getMaxFileSize() {
@@ -103,10 +114,13 @@ public class XPathCrawler {
 		}
 		try {
 			crawlStatus.join();
+			
 		} catch (InterruptedException e) {
 			System.out.println("[ERROR] Unable to join CrawlSatus thread ");
 
 		}
+		
+		System.out.println("NUM crawled: "+ numCrawled);
 		dbWrapper.shutdown();
 
 	}

@@ -14,7 +14,7 @@ public class UserEntityClass {
 
 	private String password;
 
-	public void setUsename(String name) {
+	public void setUsername(String name) {
 		username = name;
 	}
 

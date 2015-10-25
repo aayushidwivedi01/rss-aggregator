@@ -7,11 +7,12 @@ public class CrawlStatus extends Thread {
 	private static LinkedList<String> queue;
 	private static CrawlerThread[] crawlerThreads;
 	private static boolean STOP = false;
-
+	
 	public CrawlStatus(LinkedList<String> queue) {
 		this.queue = queue;
 
 	}
+	
 
 	public static synchronized void setStop(boolean value) {
 		STOP = value;
@@ -51,6 +52,7 @@ public class CrawlStatus extends Thread {
 
 				}
 				System.out.println("Crawler thread stopping");
+				
 				return;
 
 			} catch (InterruptedException e) {
