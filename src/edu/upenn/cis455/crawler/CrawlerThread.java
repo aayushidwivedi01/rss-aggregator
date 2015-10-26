@@ -15,6 +15,13 @@ import edu.upenn.cis455.crawler.info.DocumentInfo;
 import edu.upenn.cis455.crawler.info.RobotsTxtInfo;
 import edu.upenn.cis455.crawler.info.RobotsTxtParse;
 
+/**
+ * Worker thread for crawler
+ * Does all the crawling 
+ * @queue : Share queue containing links to be crawled
+ * Crawls HTMLS only;
+ * Stores documents (both html and xml) in Berkeley Data Store
+ */
 public class CrawlerThread extends Thread {
 	private LinkedList<String> urlQueue;
 	private HashMap<String, RobotsTxtInfo> hostnameRobotsMap = new HashMap<>();
@@ -22,17 +29,17 @@ public class CrawlerThread extends Thread {
 	private String protocol;
 	private DataHandler dataHandler = new DataHandler();
 	private CrawledEntityClass crawledData;
-	private int numFile = 0;
+
 	public CrawlerThread(LinkedList<String> queue,
 			HashMap<String, RobotsTxtInfo> map) {
 		this.urlQueue = queue;
 		this.hostnameRobotsMap = map;
 	}
 	
-	public void increment(){
-		numFile++;
-	}
-
+	
+	//method to find url relative to hostname
+	// @url: to be crawled
+	//@hostname
 	public String relativeURL(String url, String hostname) {
 		String temp;
 		if (url.startsWith("https")) {
@@ -48,6 +55,12 @@ public class CrawlerThread extends Thread {
 		return temp;
 	}
 
+	/**
+	 * 
+	 * @param docURL : URL to be crawled
+	 * @param hostname : Hostname of the URL
+	 * @return true if can crawl , based on robots.txt
+	 */
 	public boolean canCrawl(String docURL, String hostname) {
 		String url = relativeURL(docURL, hostname);
 		// System.out.println("Relative url:" + url + "\n" + "Full: " + docURL);
@@ -119,6 +132,12 @@ public class CrawlerThread extends Thread {
 		return true;
 	}
 
+	/**
+	 * return date present in HttpResponse header
+	 * Used to set time of crawling
+	 * @param resp
+	 * @return
+	 */
 	public String getDate(HttpResponse resp) {
 		if (resp.headers.containsKey("Date")) {
 			return resp.headers.get("Date").get(0);
@@ -133,6 +152,12 @@ public class CrawlerThread extends Thread {
 
 	}
 
+	/**
+	 * Main crawling function
+	 * @param url to be crawled
+	 * @param httpClient contains content_type of document
+	 * @param response contains info related to html/xml document
+	 */
 	public void crawl(String url, HttpClient httpClient, HttpResponse response) {
 
 		// extract links from html
@@ -168,18 +193,17 @@ public class CrawlerThread extends Thread {
 				dataHandler.storeCrawlerData(url, doc);
 
 				
-				System.out.println("***********Now Crawling " + url + "************");
+				System.out.println(url + " :Downloading");
 				HtmlLinkExtractor htmlLink = new HtmlLinkExtractor(
 						response.body, url, urlQueue);
 				htmlLink.extract();
 				visitedURLS.add(url);
-				increment();
-				System.out.println("Done crawling this link : " + url);
+				
 			} else if (httpClient.CONTENT_TYPE.equals("xml")) {
 				
 				//add to visited
 				visitedURLS.add(url);
-				increment();
+				
 				
 				// save to DB
 				
@@ -187,13 +211,12 @@ public class CrawlerThread extends Thread {
 				DocumentInfo doc = new DocumentInfo(url, response.body, "xml",
 						crawlTime);
 				dataHandler.storeCrawlerData(url, doc);
-				System.out.println("MATHCING XPATHS");
 				XMLHandler.matchXPaths(response.body, url);
 			}
 
 		}
 	}
-
+	//returns last crawled time of the url that is being crawled
 	public String getLastCrawledTime() {
 		DocumentInfo docInfo = crawledData.getDoc();
 		String lastCrawled = docInfo.getLastCrawled();
@@ -202,12 +225,13 @@ public class CrawlerThread extends Thread {
 		// HttpResponse response = httpClient.getResponse(url, "HEAD",
 		// "cis455crawler");
 	}
-
+	//returns body of the url being crawled
 	public String getCrawledDoc() {
 		DocumentInfo docInfo = crawledData.getDoc();
 		return docInfo.getBody();
 	}
-
+	
+	//checks if a url pre-exists in Berkeley database
 	public boolean isInDB(String url) {
 
 		// check in DB
@@ -221,7 +245,7 @@ public class CrawlerThread extends Thread {
 		}
 
 	}
-
+	//manages the thread functions
 	public void run() {
 		try {
 			while (!CrawlStatus.signalStop()) {
@@ -232,8 +256,6 @@ public class CrawlerThread extends Thread {
 							urlQueue.wait();
 						} catch (InterruptedException e) {
 							if (CrawlStatus.signalStop()) {
-								System.out.println ("Num of files crawled " + Thread.currentThread().getName()
-										+ " :" + numFile);
 								System.out.println(Thread.currentThread()
 										.getName() + " is stopped");
 							} else {
@@ -247,6 +269,10 @@ public class CrawlerThread extends Thread {
 
 					} else {
 						String url = urlQueue.removeFirst();
+						XPathCrawler.decrement();
+						if (CrawlStatus.signalStop()){
+							break;
+						}
 						String userAgent = "cis455crawler";
 						HttpClient httpClient = new HttpClient();
 						String hostname = httpClient.getHostName(url);
@@ -260,8 +286,6 @@ public class CrawlerThread extends Thread {
 							
 							if (isInDB(url)) {
 								String lastCrawled = getLastCrawledTime();
-								System.out.println("This url is in DB: " + url
-										+ "\nCHECK if modified or not");
 								String responseCode = httpClient
 										.isModifiedSince(url, lastCrawled,
 												userAgent);
@@ -272,20 +296,17 @@ public class CrawlerThread extends Thread {
 									crawl(url, httpClient, response);
 								} else if (responseCode.equals("304")) {
 									System.out
-											.println("URL document not modified. Crawling old doc: "
+											.println("Not modified. Crawling old doc: "
 													+ url);
-									// System.out.println("Crawled Doc: "+
-									// getCrawledDoc());
 									if (url.endsWith(".xml")){
-										System.out.println("Matching XPaths " + url);
 										XMLHandler.matchXPaths(getCrawledDoc(), url);
-										increment();
+										
 									}
 									else {
 										HtmlLinkExtractor htmlLink = new HtmlLinkExtractor(
 												getCrawledDoc(), url, urlQueue);
 										htmlLink.extract();
-										increment();
+										
 									}
 									
 
@@ -322,7 +343,6 @@ public class CrawlerThread extends Thread {
 								httpClient.setIsRobot(false);
 
 							} else {
-								System.out.println("robots.txt URL null;");
 								continue;
 							}
 
@@ -355,8 +375,6 @@ public class CrawlerThread extends Thread {
 
 		} catch (Exception e) {
 			if (CrawlStatus.signalStop()) {
-				System.out.println ("Num of files crawled " + Thread.currentThread().getName()
-						+ " :" + numFile);
 				System.out.println(Thread.currentThread().getName()
 						+ " is stopped");
 			} else {

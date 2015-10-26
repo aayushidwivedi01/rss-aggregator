@@ -16,8 +16,17 @@ import edu.upenn.cis455.storage.DBWrapper;
 import edu.upenn.cis455.xpathengine.XPathEngine;
 import edu.upenn.cis455.xpathengine.XPathEngineFactory;
 
+
+/**
+ * This class is used by crawler threads to
+ * check whether an xml file matches any xpaths
+ * in any of the channels;
+ * Adds XML document and its url to ChannelEntityClass
+ * if a match is found
+ *
+ */
 public class XMLHandler {
-	
+	//fetches all channels in the dbStore
 	public static ArrayList<ChannelEntityClass> getChannels(){
 		String store = XPathCrawler.getStore();
 		ArrayList<ChannelEntityClass> channelMap =
@@ -25,7 +34,7 @@ public class XMLHandler {
 		return channelMap;
 	}
 	
-	
+	//matches xml to xpaths
 	public static void matchXPaths(String xmlBody, String url){
 		
 		ArrayList<ChannelEntityClass>channels = getChannels();

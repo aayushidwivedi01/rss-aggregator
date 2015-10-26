@@ -27,7 +27,7 @@ public class CrawlStatus extends Thread {
 	}
 
 	public void run() {
-		while (true) {
+		while (!STOP) {
 			try {
 				Thread.sleep(5000);
 

@@ -10,7 +10,8 @@ public class RunAllTests extends TestCase {
 			Class[] testClasses = {
 					test.edu.upenn.cis455.XPathDOMParserTest.class,
 					test.edu.upenn.cis455.XPathServletTest.class,
-					test.edu.upenn.cis455.XPathValidationTest.class
+					test.edu.upenn.cis455.XPathValidationTest.class,
+					test.edu.upenn.cis455.StorageTest.class
 
 			};
 

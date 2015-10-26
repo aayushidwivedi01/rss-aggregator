@@ -7,17 +7,23 @@ import java.util.LinkedList;
 import edu.upenn.cis455.crawler.info.RobotsTxtInfo;
 import edu.upenn.cis455.storage.DBWrapper;
 
+/**
+ * Multi-threaded crawler
+ * Main class for crawler
+ * Manages crawling process
+ *
+ */
 public class XPathCrawler {
 
-	private final static int MAX_POOL_SIZE = 2;
+	private final static int MAX_POOL_SIZE = 5;
 	private static String store;
 	private static long maxFileSize;
-	private static int maxNumFiles;
-	private int numFilesCrawled = -1;
-	private static int numCrawled = 0;
+	private static int maxNumFiles = Integer.MAX_VALUE;
+	
 
 	static CrawlerThread[] crawlerThread = new CrawlerThread[MAX_POOL_SIZE];
 
+	//creates threadpool of crawler threads
 	private static void generateCrawlerPool(LinkedList<String> urlQueue,
 			HashMap<String, RobotsTxtInfo> map) {
 		for (int i = 0; i < MAX_POOL_SIZE; i++) {
@@ -33,10 +39,13 @@ public class XPathCrawler {
 		return store;
 	}
 	
-	public static synchronized void incrementCrawl(){
-		System.out.println("INCREMENTING &&&& *************************");
-		numCrawled++;
+	public static synchronized void decrement(){
+		maxNumFiles --;
+		if (maxNumFiles <= 0){
+			CrawlStatus.setStop(true);
+		}
 	}
+	
 
 	public static long getMaxFileSize() {
 		return maxFileSize;
@@ -119,8 +128,8 @@ public class XPathCrawler {
 			System.out.println("[ERROR] Unable to join CrawlSatus thread ");
 
 		}
+		System.out.println(maxNumFiles);
 		
-		System.out.println("NUM crawled: "+ numCrawled);
 		dbWrapper.shutdown();
 
 	}
